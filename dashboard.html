@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard - AgroDetect</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<div class="main-layout">
+  <!-- SIDEBAR IZQUIERDO -->
+  <aside class="sidebar">
+    <nav class="sidebar-nav">
+      <div style="margin-bottom: 20px; text-align: center; padding-bottom: 15px; border-bottom: 1px solid #e0e0e0;">
+        <div style="font-size: 32px; margin-bottom: 8px;">🌱</div>
+        <h2 style="margin: 0; color: #1b5e20; font-size: 18px;">AgroDetect</h2>
+        <p style="margin: 4px 0 0 0; color: #999; font-size: 11px;">Sistema de Plagas</p>
+      </div>
+
+      <div class="nav-section">
+        <h3>NAVEGACIÓN PRINCIPAL</h3>
+        <ul>
+          <li class="active"><a href="dashboard.html">📊 Dashboard</a></li>
+          <li><a href="deteccion.html">🔍 Detección de Plagas</a></li>
+          <li><a href="cultivos.html">🌾 Mis Cultivos</a></li>
+          <li><a href="#">📈 Reportes</a></li>
+          <li><a href="#">📍 Ubicaciones</a></li>
+        </ul>
+      </div>
+
+      <hr>
+
+      <div class="nav-section">
+        <h3>ESTADO ACTUAL</h3>
+        <div class="status-card">
+          <p style="margin: 0 0 8px 0; font-size: 12px; color: #333;">
+            <strong id="total-cultivos">0</strong> cultivos monitoreados
+          </p>
+          <p style="margin: 0; font-size: 12px; color: #333;">
+            <strong id="total-detecciones">0</strong> detecciones
+          </p>
+        </div>
+      </div>
+
+      <hr>
+
+      <div class="nav-section">
+        <a href="index.html" class="btn btn-logout">🚪 Salir</a>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="main-content">
+    <!-- HEADER DEL DASHBOARD -->
+    <div style="background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%); color: white; padding: 20px 30px; border-radius: 8px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <h1 style="margin: 0 0 5px 0; font-size: 28px;">🌾 Dashboard de Predicción</h1>
+        <p style="margin: 0; font-size: 13px; opacity: 0.9;">Monitoreo inteligente y pronóstico de plagas en cultivos de la provincia del Carchi</p>
+      </div>
+      <div style="text-align: right;">
+        <p style="margin: 0; font-size: 12px; opacity: 0.9;">Última actualización:</p>
+        <p style="margin: 0; font-size: 14px; font-weight: 600;" id="ultima-actualizacion">Hace 1 min</p>
+      </div>
+    </div>
+
+    <!-- RESUMEN DE ESTADÍSTICAS -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px;">
+      <div style="background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+          <div>
+            <p style="margin: 0 0 8px 0; color: #999; font-size: 12px; text-transform: uppercase; font-weight: 600;">Total Cultivos</p>
+            <p style="margin: 0; font-size: 32px; font-weight: 700; color: #1b5e20;" id="stat-total">0</p>
+            <p style="margin: 4px 0 0 0; color: #999; font-size: 11px;">Cantones monitoreados</p>
+          </div>
+          <div style="font-size: 32px;">🥔</div>
+        </div>
+      </div>
+
+      <div style="background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+          <div>
+            <p style="margin: 0 0 8px 0; color: #999; font-size: 12px; text-transform: uppercase; font-weight: 600;">Zonas Saludables</p>
+            <p style="margin: 0; font-size: 32px; font-weight: 700; color: #388e3c;" id="stat-saludables">0</p>
+            <p style="margin: 4px 0 0 0; color: #999; font-size: 11px;">Sin plagas detectadas</p>
+          </div>
+          <div style="font-size: 32px;">✅</div>
+        </div>
+      </div>
+
+      <div style="background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+          <div>
+            <p style="margin: 0 0 8px 0; color: #999; font-size: 12px; text-transform: uppercase; font-weight: 600;">Alerta Moderada</p>
+            <p style="margin: 0; font-size: 32px; font-weight: 700; color: #f57c00;" id="stat-alerta-mod">0</p>
+            <p style="margin: 4px 0 0 0; color: #999; font-size: 11px;">Requiere atención</p>
+          </div>
+          <div style="font-size: 32px;">⚠️</div>
+        </div>
+      </div>
+
+      <div style="background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+          <div>
+            <p style="margin: 0 0 8px 0; color: #999; font-size: 12px; text-transform: uppercase; font-weight: 600;">Alerta Crítica</p>
+            <p style="margin: 0; font-size: 32px; font-weight: 700; color: #d32f2f;" id="stat-alerta-cri">0</p>
+            <p style="margin: 4px 0 0 0; color: #999; font-size: 11px;">Acción inmediata</p>
+          </div>
+          <div style="font-size: 32px;">🔴</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CULTIVOS MONITOREADOS -->
+    <div style="margin-bottom: 30px;">
+      <h2 style="color: #1b5e20; margin-bottom: 15px; font-size: 18px;">🌾 Cultivos Monitoreados</h2>
+      <div class="cultivos-grid" id="cultivosGrid">
+        <!-- Tarjetas de cultivos se cargan dinámicamente -->
+      </div>
+    </div>
+
+    <!-- RESUMEN DE PLAGAS -->
+    <div style="background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+      <h3 style="margin: 0 0 15px 0; color: #1b5e20; font-size: 16px;">🦠 Resumen de Plagas Detectadas</h3>
+      <div id="plagas-resumen" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+        <!-- Se carga dinámicamente -->
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+// Definir cultivos de papa en los tres cantones
+const cultivos = [
+  {
+    id: 'papa-tulcan',
+    nombre: 'Papa - Tulcán',
+    canton: 'Tulcán',
+    ubicacion: 'El Carmelo',
+    area: '2.5 ha',
+    fechaPlantado: '14/1/2024',
+    icon: '🥔'
+  },
+  {
+    id: 'papa-huaca',
+    nombre: 'Papa - Huaca',
+    canton: 'Huaca',
+    ubicacion: 'La Paz',
+    area: '1.8 ha',
+    fechaPlantado: '25/1/2024',
+    icon: '🥔'
+  },
+  {
+    id: 'papa-sangabriel',
+    nombre: 'Papa - San Gabriel',
+    canton: 'San Gabriel',
+    ubicacion: 'Centro',
+    area: '2.0 ha',
+    fechaPlantado: '20/1/2024',
+    icon: '🥔'
+  }
+];
+
+// Función para obtener el estado basado en detecciones
+function obtenerEstado(detecciones) {
+  if (!detecciones || detecciones.length === 0) {
+    return { badge: 'saludable', texto: 'Saludable', icon: '' };
+  }
+  
+  const tienelancha = detecciones.some(d => d.nombreCientifico && d.nombreCientifico.includes('Phytophthora'));
+  const tieneBabosa = detecciones.some(d => d.nombreCientifico && d.nombreCientifico.includes('Deroceras'));
+  
+  if (tienelancha) {
+    return { badge: 'critica', texto: 'Crítica', icon: '🔴' };
+  }
+  
+  if (tieneBabosa) {
+    return { badge: 'alerta', texto: 'Alerta', icon: '⚠️' };
+  }
+  
+  return { badge: 'saludable', texto: 'Saludable', icon: '' };
+}
+
+// Función para crear HTML de una tarjeta
+function crearTarjetaCultivo(cultivo) {
+  const detecciones = obtenerDetecciones(cultivo.id);
+  const estado = obtenerEstado(detecciones);
+  
+  // Obtener fecha de última inspección
+  let ultimaInspeccion = 'Sin inspecciones';
+  if (detecciones && detecciones.length > 0) {
+    const ultima = detecciones[detecciones.length - 1];
+    ultimaInspeccion = ultima.fecha || new Date(ultima.timestamp).toLocaleDateString('es-ES');
+  }
+  
+  // Renderizar plagas detectadas
+  let plagsHTML = '';
+  if (!detecciones || detecciones.length === 0) {
+    plagsHTML = '<span class="plaga-badge">No detectadas</span>';
+  } else {
+    const plagasUniques = [...new Set(detecciones.map(d => d.clase))];
+    plagsHTML = plagasUniques.map(plaga => {
+      if (plaga.includes('Lancha') || plaga.includes('Tizón')) {
+        return '<span class="plaga-badge lancha">Lancha</span>';
+      } else if (plaga.includes('Babosa') || plaga.includes('Deroceras')) {
+        return '<span class="plaga-badge babosa">Babosa</span>';
+      }
+      return '';
+    }).join('');
+  }
+  
+  return `
+    <div class="cultivo-card">
+      <div class="cultivo-imagen" style="background: linear-gradient(135deg, #2e7d32, #43a047); display: flex; align-items: center; justify-content: center; color: white; font-size: 48px;">
+        ${cultivo.icon}
+      </div>
+      <div class="cultivo-info">
+        <div class="cultivo-header">
+          <h3>${cultivo.nombre}</h3>
+          <span class="estado-badge ${estado.badge}">${estado.texto}</span>
+        </div>
+        <p class="cultivo-ubicacion">📍 ${cultivo.canton}, ${cultivo.ubicacion}</p>
+        
+        <div class="cultivo-detalles">
+          <div class="detalle-item">
+            <span class="label">Área:</span>
+            <span class="valor">${cultivo.area}</span>
+          </div>
+          <div class="detalle-item">
+            <span class="label">Plantado:</span>
+            <span class="valor">${cultivo.fechaPlantado}</span>
+          </div>
+          <div class="detalle-item">
+            <span class="label">Última inspección:</span>
+            <span class="valor">${ultimaInspeccion}</span>
+          </div>
+        </div>
+
+        <div class="plagas-detectadas">
+          <p style="margin: 0 0 8px 0; font-size: 11px; font-weight: 600; color: ${estado.badge === 'saludable' ? '#1b5e20' : '#d32f2f'};">
+            ${estado.icon} Plagas detectadas:
+          </p>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+            ${plagsHTML}
+          </div>
+        </div>
+
+        <a href="detalles-cultivo.html?cultivo=${cultivo.id}" class="btn btn-card">Ver Detalles</a>
+      </div>
+    </div>
+  `;
+}
+
+// Función para cargar el dashboard
+function cargarDashboard() {
+  const grid = document.getElementById('cultivosGrid');
+  grid.innerHTML = cultivos.map(crearTarjetaCultivo).join('');
+  
+  // Actualizar estadísticas
+  actualizarEstadisticas();
+  actualizarResumenPlagas();
+  actualizarUltimaActualizacion();
+}
+
+// Función para actualizar estadísticas
+function actualizarEstadisticas() {
+  let totalCultivos = cultivos.length;
+  let saludables = 0;
+  let alertaModerada = 0;
+  let alertaCritica = 0;
+  let totalDetecciones = 0;
+
+  cultivos.forEach(cultivo => {
+    const detecciones = obtenerDetecciones(cultivo.id);
+    totalDetecciones += detecciones.length;
+    const estado = obtenerEstado(detecciones);
+    
+    if (estado.badge === 'saludable') saludables++;
+    else if (estado.badge === 'alerta') alertaModerada++;
+    else if (estado.badge === 'critica') alertaCritica++;
+  });
+
+  document.getElementById('stat-total').textContent = totalCultivos;
+  document.getElementById('stat-saludables').textContent = saludables;
+  document.getElementById('stat-alerta-mod').textContent = alertaModerada;
+  document.getElementById('stat-alerta-cri').textContent = alertaCritica;
+  document.getElementById('total-cultivos').textContent = totalCultivos;
+  document.getElementById('total-detecciones').textContent = totalDetecciones;
+}
+
+// Función para actualizar resumen de plagas
+function actualizarResumenPlagas() {
+  const plagas = {
+    'Lancha': { count: 0, icon: '🦠', color: '#c62828', bg: '#ffebee' },
+    'Babosa de la papa': { count: 0, icon: '🐌', color: '#7b1fa2', bg: '#f3e5f5' },
+    'Papa sana': { count: 0, icon: '🟢', color: '#388e3c', bg: '#e8f5e9' }
+  };
+
+  cultivos.forEach(cultivo => {
+    const detecciones = obtenerDetecciones(cultivo.id);
+    detecciones.forEach(det => {
+      if (det.clase in plagas) {
+        plagas[det.clase].count++;
+      }
+    });
+  });
+
+  const resumenHTML = Object.entries(plagas).map(([nombre, data]) => {
+    const porcentaje = data.count > 0 ? ((data.count / cultivos.length) * 100).toFixed(0) : '0';
+    return `
+      <div style="background: ${data.bg}; border-radius: 8px; padding: 15px; border-left: 4px solid ${data.color};">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="font-size: 28px;">${data.icon}</div>
+          <div>
+            <p style="margin: 0; color: ${data.color}; font-weight: 600; font-size: 14px;">${nombre}</p>
+            <p style="margin: 0; color: #666; font-size: 12px;">${data.count} detecciones</p>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('plagas-resumen').innerHTML = resumenHTML;
+}
+
+// Función para actualizar la hora de última actualización
+function actualizarUltimaActualizacion() {
+  const ahora = new Date();
+  let texto = 'Ahora mismo';
+  
+  const elementoTiempo = document.getElementById('ultima-actualizacion');
+  if (elementoTiempo) {
+    elementoTiempo.textContent = texto;
+  }
+}
+
+// Cargar al abrir la página
+window.addEventListener('load', cargarDashboard);
+
+// Actualizar cada 30 segundos
+setInterval(cargarDashboard, 30000);
+</script>
+
+</body>
+</html>

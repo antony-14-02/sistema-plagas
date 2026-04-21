@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Mis Cultivos</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<header>
+  <div class="header-content">
+    <h1>🌱 AgroDetect</h1>
+    <p>Sistema de Plagas</p>
+  </div>
+</header>
+
+<div class="main-layout">
+  <!-- SIDEBAR IZQUIERDO -->
+  <aside class="sidebar">
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <h3>NAVEGACIÓN PRINCIPAL</h3>
+        <ul>
+          <li><a href="dashboard.html">📊 Dashboard</a></li>
+          <li><a href="deteccion.html">🔍 Detección de Plagas</a></li>
+          <li class="active"><a href="cultivos.html">🌾 Mis Cultivos</a></li>
+        </ul>
+      </div>
+
+      <hr>
+
+      <div class="nav-section">
+        <a href="index.html" class="btn btn-logout">🚪 Salir</a>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="main-content">
+    <div class="page-header">
+      <h2>🌾 Mis Cultivos de Papa</h2>
+      <p>Historial de detecciones guardadas</p>
+    </div>
+
+    <!-- CONTAINER DE CULTIVOS -->
+    <div id="cultivos-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px;">
+      <!-- Se cargan dinámicamente -->
+    </div>
+  </main>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+// Definir cultivos
+const cultivosList = [
+  {
+    id: 'papa-tulcan',
+    nombre: 'Papa - Tulcán',
+    canton: 'Tulcán',
+    ubicacion: 'El Carmelo',
+    area: '2.5 ha',
+    plantado: '14/1/2024'
+  },
+  {
+    id: 'papa-huaca',
+    nombre: 'Papa - Huaca',
+    canton: 'Huaca',
+    ubicacion: 'La Paz',
+    area: '1.8 ha',
+    plantado: '25/1/2024'
+  },
+  {
+    id: 'papa-sangabriel',
+    nombre: 'Papa - San Gabriel',
+    canton: 'San Gabriel',
+    ubicacion: 'Centro',
+    area: '2.0 ha',
+    plantado: '20/1/2024'
+  }
+];
+
+// Función para cargar detecciones de un cultivo
+function cargarDeteccionesCultivo(cultivoId) {
+  try {
+    const key = `detecciones_${cultivoId}`;
+    const stored = localStorage.getItem(key);
+    return stored ? JSON.parse(stored) : [];
+  } catch (e) {
+    console.warn('Error al leer detecciones', e);
+    return [];
+  }
+}
+
+// Función para crear tarjeta de cultivo con historial
+function crearTarjetaCultivoConHistorial(cultivo) {
+  const detecciones = cargarDeteccionesCultivo(cultivo.id);
+  
+  let historicoHTML = '';
+  if (detecciones.length === 0) {
+    historicoHTML = '<p style="text-align: center; color: #999; font-size: 12px;">Sin detecciones guardadas</p>';
+  } else {
+    historicoHTML = `
+      <div style="max-height: 250px; overflow-y: auto;">
+        <ul style="list-style: none; padding: 0; margin: 0;">
+          ${detecciones.slice().reverse().map((det, idx) => {
+            const fecha = det.fecha || new Date(det.timestamp).toLocaleDateString('es-ES');
+            const hora = det.hora || new Date(det.timestamp).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+            const colorClase = det.clase.includes('Lancha') ? '#c62828' : 
+                              det.clase.includes('Babosa') ? '#7b1fa2' : '#388e3c';
+            const bgColorClase = det.clase.includes('Lancha') ? '#ffebee' : 
+                                det.clase.includes('Babosa') ? '#f3e5f5' : '#e8f5e9';
+            
+            return `
+              <li style="padding: 12px; border-bottom: 1px solid #eee;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                  <div>
+                    <strong style="color: ${colorClase}; font-size: 13px;">${det.clase}</strong><br>
+                    <small style="color: #999;">📅 ${fecha} ${hora}</small>
+                  </div>
+                  <div style="background: ${bgColorClase}; color: ${colorClase}; padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; white-space: nowrap;">
+                    ${det.clase === 'Lancha' ? '🦠' : det.clase === 'Babosa de la papa' ? '🐌' : '🟢'}
+                  </div>
+                </div>
+                ${det.ubicacion ? `<p style="margin: 4px 0; font-size: 11px; color: #666;"><strong>📍 Ubicación:</strong> ${det.ubicacion}</p>` : ''}
+                ${det.observaciones ? `<p style="margin: 4px 0; font-size: 11px; color: #666;"><strong>📝 Observaciones:</strong> ${det.observaciones}</p>` : ''}
+                <small style="color: #aaa;">Confianza: ${(det.probability * 100).toFixed(0)}%</small>
+              </li>
+            `;
+          }).join('')}
+        </ul>
+      </div>
+    `;
+  }
+  
+  return `
+    <div style="background: white; border-radius: 12px; padding: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: box-shadow 0.3s;">
+      <div style="margin-bottom: 15px;">
+        <h3 style="margin: 0 0 5px 0; color: #1b5e20; font-size: 16px;">${cultivo.nombre}</h3>
+        <p style="margin: 0 0 8px 0; font-size: 12px; color: #666;">📍 ${cultivo.canton}, ${cultivo.ubicacion}</p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11px;">
+          <div style="background: #f5f5f5; padding: 6px; border-radius: 4px;">
+            <strong style="color: #333;">Área:</strong> ${cultivo.area}
+          </div>
+          <div style="background: #f5f5f5; padding: 6px; border-radius: 4px;">
+            <strong style="color: #333;">Plantado:</strong> ${cultivo.plantado}
+          </div>
+        </div>
+      </div>
+      
+      <div style="border-top: 1px solid #eee; padding-top: 12px;">
+        <p style="margin: 0 0 10px 0; font-size: 12px; font-weight: 600; color: #333;">📊 Historial de Detecciones (${detecciones.length})</p>
+        ${historicoHTML}
+      </div>
+      
+      ${detecciones.length > 0 ? `
+        <button onclick="limpiarDetecciones('${cultivo.id}')" style="width: 100%; margin-top: 12px; padding: 8px; background: #ffebee; color: #d32f2f; border: 1px solid #ffcdd2; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 12px; transition: background 0.3s;">
+          🗑️ Limpiar historial
+        </button>
+      ` : ''}
+    </div>
+  `;
+}
+
+// Función para limpiar detecciones
+function limpiarDetecciones(cultivoId) {
+  if (confirm('¿Deseas eliminar el historial de detecciones de este cultivo?')) {
+    try {
+      const key = `detecciones_${cultivoId}`;
+      localStorage.removeItem(key);
+      cargarCultivos(); // Recargar
+      
+      // Mostrar mensaje
+      const msg = document.createElement('div');
+      msg.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #43a047; color: white; padding: 12px 20px; border-radius: 6px; z-index: 9999; font-weight: 600;';
+      msg.innerHTML = '✅ Historial eliminado';
+      document.body.appendChild(msg);
+      setTimeout(() => msg.remove(), 2500);
+    } catch (e) {
+      alert('Error: ' + e.message);
+    }
+  }
+}
+
+// Función para cargar todos los cultivos
+function cargarCultivos() {
+  const container = document.getElementById('cultivos-container');
+  if (!container) return;
+  
+  container.innerHTML = cultivosList.map(crearTarjetaCultivoConHistorial).join('');
+}
+
+// Cargar al abrir la página
+window.addEventListener('load', cargarCultivos);
+</script>
+
+</body>
+</html>

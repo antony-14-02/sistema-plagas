@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Detección de Plagas</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<header>
+  <div class="header-content">
+    <h1>🌱 AgroDetect</h1>
+    <p>Sistema de Plagas</p>
+  </div>
+</header>
+
+<div class="main-layout">
+  <!-- SIDEBAR IZQUIERDO -->
+  <aside class="sidebar">
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <h3>NAVEGACIÓN PRINCIPAL</h3>
+        <ul>
+          <li><a href="dashboard.html">📊 Dashboard</a></li>
+          <li class="active"><a href="deteccion.html">🔍 Detección de Plagas</a></li>
+          <li><a href="cultivos.html">🌾 Mis Cultivos</a></li>
+        </ul>
+      </div>
+
+      <hr>
+
+      <div class="nav-section cultivo-info">
+        <h3>🥔 CULTIVO: PAPA</h3>
+        <div class="cultivo-select">
+          <label for="cultivo-selector">Selecciona tu lote:</label>
+          <select id="cultivo-selector">
+            <option value="">-- Elige lote --</option>
+            <option value="papa-tulcan" selected>Papa - Tulcán</option>
+            <option value="papa-huaca">Papa - Huaca</option>
+            <option value="papa-sangabriel">Papa - San Gabriel</option>
+          </select>
+        </div>
+        <div id="cultivo-description" class="cultivo-description"></div>
+      </div>
+
+      <hr>
+
+      <div class="nav-section">
+        <a href="index.html" class="btn btn-logout">🚪 Salir</a>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="main-content">
+    <div class="page-header">
+      <h2>🔍 Detección de Plagas en Papa</h2>
+      <p>Sube una imagen de tu cultivo para detectar plagas automáticamente</p>
+    </div>
+
+    <div class="detection-grid">
+      <!-- PANEL IZQUIERDO: CÁMARA Y CARGA -->
+      <section class="card card-upload">
+        <h3>📸 Capturar o Cargar Imagen</h3>
+        <p class="info-text">💡 Consejos: Toma fotos con buena iluminación, enfoca las hojas afectadas y asegúrate que la imagen esté nítida.</p>
+
+        <div class="upload-section">
+          <!-- CÁMARA EN VIVO -->
+          <div class="camera-section">
+            <label>📷 Cámara en Vivo</label>
+            <div id="webcam-container" class="webcam-display"></div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px;">
+              <button class="btn btn-secondary" id="btn-camera" onclick="toggleCamera()" style="width: 100%;">📷 Iniciar Cámara</button>
+              <button class="btn btn-secondary" id="btn-capture" onclick="capturarDesdeCamera()" style="width: 100%; display: none;">📸 Capturar</button>
+            </div>
+          </div>
+
+          <div class="divider-text">O</div>
+
+          <!-- CARGAR ARCHIVO -->
+          <div class="file-section">
+            <label>📁 Cargar Imagen</label>
+            <input type="file" id="imageUpload" accept="image/*" capture="environment">
+            <button class="btn btn-secondary" onclick="document.getElementById('imageUpload').click()">Seleccionar Archivo</button>
+            <div id="preview-upload" class="preview-upload"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PANEL DERECHO: RESULTADO + CARACTERÍSTICAS -->
+      <section class="card card-result">
+        <h3>✅ Resultado del Análisis</h3>
+        <p class="info-text">Información detallada sobre la detección</p>
+
+        <div id="label-container" class="result-content">
+          <div class="empty-state">
+            <span style="font-size: 48px;">📷</span>
+            <p style="color: #999;">Esperando análisis</p>
+            <p style="font-size: 12px; color: #bbb;">Sube una imagen para comenzar</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL PARA GUARDAR DETECCIÓN -->
+<div id="modal-guardar" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; overflow-y: auto; padding: 20px 0;">
+  <div style="background: white; margin: 40px auto; padding: 30px; border-radius: 12px; max-width: 500px; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+    <h2 style="margin: 0 0 20px 0; color: #1b5e20; font-size: 20px;">💾 Guardar Detección</h2>
+    
+    <div style="margin-bottom: 18px;">
+      <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333; font-size: 13px;">🥔 Cultivo</label>
+      <input type="text" id="modal-cultivo" readonly style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; background: #f5f5f5; font-size: 13px;">
+    </div>
+
+    <div style="margin-bottom: 18px;">
+      <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333; font-size: 13px;">🦠 Plaga Detectada</label>
+      <input type="text" id="modal-plaga" readonly style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; background: #f5f5f5; font-size: 13px;">
+    </div>
+
+    <div style="margin-bottom: 18px;">
+      <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333; font-size: 13px;">📍 Ubicación Específica en el Cultivo *</label>
+      <input type="text" id="modal-ubicacion" placeholder="Ej: Sector norte, parcela 3, cerca del lindero..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; font-family: inherit;">
+      <small style="color: #999; display: block; margin-top: 4px;">Describe el lugar exacto donde se encontró el problema</small>
+    </div>
+
+    <div style="margin-bottom: 18px;">
+      <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333; font-size: 13px;">📝 Observaciones Adicionales</label>
+      <textarea id="modal-observaciones" placeholder="Ej: Daños en progresión, clima húmedo, zonas afectadas..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; font-family: inherit; resize: vertical; min-height: 80px;"></textarea>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px;">
+      <div>
+        <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333; font-size: 13px;">📅 Fecha de Inspección</label>
+        <input type="date" id="modal-fecha" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; font-family: inherit;">
+      </div>
+      <div>
+        <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333; font-size: 13px;">🕐 Hora</label>
+        <input type="time" id="modal-hora" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; font-family: inherit;">
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+      <button onclick="cerrarModal()" style="padding: 12px; background: #e0e0e0; color: #333; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; transition: background 0.3s;">
+        ❌ Cancelar
+      </button>
+      <button onclick="guardarDeteccionConDetalles()" style="padding: 12px; background: #43a047; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; transition: background 0.3s;">
+        ✅ Guardar Detección
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+<script src="js/app.js"></script>
+
+<script>
+  // Datos de cultivos PAPA
+  const cultivosData = {
+    'papa-a': {
+      nombre: 'Papa - Lote A',
+      hectareas: 2,
+      estado: 'Saludable',
+      ultima_revision: '2025-12-10'
+    },
+    'papa-b': {
+      nombre: 'Papa - Lote B',
+      hectareas: 1,
+      estado: 'Bajo monitoreo',
+      ultima_revision: '2025-12-12'
+    }
+  };
+
+  // Características de plagas de PAPA (solo 2 plagas: Babosa y Phytophthora)
+  const plagasCaracteristicas = {
+    'Babosa de la papa': {
+      nombre: 'Babosa de la Papa (Deroceras reticulatum)',
+      severity: 'Alta',
+      descripcion: 'Molusco terrestre (Deroceras reticulatum) que causa daños significativos en hojas y tubérculos.',
+      caracteristicas: [
+        '🔸 Color gris o marrón claro con capa viscosa',
+        '🔸 Agujeros irregulares en hojas y tubérculos',
+        '🔸 Manchas necróticas en tejido vegetal',
+        '🔸 Más activa durante la noche (nocturna)',
+        '🔸 Presencia de rastros viscosos (baba)',
+        '🔸 Prefiere ambientes húmedos'
+      ],
+      daños: 'Reduce capacidad fotosintética, afecta calidad de tubérculos, puede transmitir Fusarium y Phytophthora. Pérdidas significativas sin control.',
+      control: 'Cebos específicos para babosas, barreras de cobre alrededor de plantas, control biológico con depredadores naturales, manejo de humedad del suelo'
+    },
+    'Lancha': {
+      nombre: 'Lancha (Phytophthora infestans)',
+      severity: 'Crítica',
+      descripcion: 'Phytophthora infestans es un organismo tipo oomiceto que causa el tizón tardío de la papa, una de las enfermedades más destructivas del cultivo.',
+      caracteristicas: [
+        '🔸 Manchas irregulares de color verde oscuro a marrón en las hojas',
+        '🔸 Bordes de las hojas con aspecto quemado',
+        '🔸 Presencia de moho blanco o gris en el envés de la hoja en condiciones húmedas',
+        '🔸 Tallos ennegrecidos y debilitados',
+        '🔸 Tubérculos con manchas marrones internas y pudrición'
+      ],
+      daños: 'Reducción drástica del rendimiento; pérdida total del cultivo si no se controla; deterioro de la calidad comercial del tubérculo; alta capacidad de propagación entre plantas.',
+      control: 'Fungicidas preventivos y curativos, eliminación de plantas infectadas, rotación de cultivos, uso de semilla certificada, buen manejo del riego y ventilación'
+    },
+    'Papa sana': {
+      nombre: 'Papa Sana',
+      severity: 'Ninguna',
+      descripcion: 'La planta no presenta signos visibles de plagas o enfermedades',
+      caracteristicas: [
+        '✅ Hojas verdes sin manchas',
+        '✅ Tallos firmes y sin lesiones',
+        '✅ Plantas uniformes de crecimiento',
+        '✅ Ausencia de insectos visibles',
+        '✅ Follaje vigoroso y tupido'
+      ],
+      daños: 'Sin daños',
+      control: 'Mantener medidas preventivas y monitoreo regular'
+    }
+  };
+
+  let cameraActive = false;
+
+  // Cargar cultivo por defecto
+  window.addEventListener('load', () => {
+    document.getElementById('cultivo-selector').value = 'papa-a';
+    actualizarCultivoInfo();
+  });
+
+  // Actualizar descripción del cultivo
+  document.getElementById('cultivo-selector').addEventListener('change', actualizarCultivoInfo);
+
+  function actualizarCultivoInfo() {
+    const cultivo = cultivosData[document.getElementById('cultivo-selector').value];
+    const descContainer = document.getElementById('cultivo-description');
+    
+    if (cultivo) {
+      descContainer.innerHTML = `
+        <div class="cultivo-card">
+          <p><strong>${cultivo.nombre}</strong></p>
+          <p>📏 Extensión: ${cultivo.hectareas} hectáreas</p>
+          <p>🌱 Estado: <span style="color: ${cultivo.estado === 'Saludable' ? '#43a047' : '#f57c00'}">${cultivo.estado}</span></p>
+          <p>🕐 Última revisión: ${cultivo.ultima_revision}</p>
+          
+          <hr style="margin: 12px 0; border: none; border-top: 1px solid #ddd;">
+          
+          <p style="font-size: 11px; font-weight: 600; color: #666; margin: 8px 0;">PLAGAS EN PAPA:</p>
+          <div class="plagas-list">
+            ${Object.keys(plagasCaracteristicas).filter(p => p !== 'Papa sana').map(plaga => `
+              <div class="plaga-item">
+                <strong style="color: ${plagasCaracteristicas[plaga].severity === 'Crítica' ? '#c62828' : (plagasCaracteristicas[plaga].severity === 'Alta' ? '#6a1b9a' : '#1b5e20')};">${plagasCaracteristicas[plaga].nombre}</strong>
+                <span style="font-size: 10px; background: ${plagasCaracteristicas[plaga].severity === 'Crítica' ? '#ffebee' : (plagasCaracteristicas[plaga].severity === 'Alta' ? '#f3e5f5' : '#e8f5e9')}; color: ${plagasCaracteristicas[plaga].severity === 'Crítica' ? '#c62828' : (plagasCaracteristicas[plaga].severity === 'Alta' ? '#6a1b9a' : '#1b5e20')}; padding: 2px 6px; border-radius: 3px; margin-left: 5px;">${plagasCaracteristicas[plaga].severity}</span>
+                <p style="margin: 4px 0; font-size: 11px; color: #555;">${plagasCaracteristicas[plaga].descripcion}</p>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  // Toggle cámara mejorado para celular
+  function toggleCamera() {
+    const btn = document.getElementById('btn-camera');
+    const btnCapture = document.getElementById('btn-capture');
+    if (!cameraActive) {
+      init();
+      btn.textContent = '⏹️ Detener Cámara';
+      if (btnCapture) btnCapture.style.display = 'block';
+      cameraActive = true;
+    } else {
+      loopRunning = false;
+      if (webcam && webcam.canvas) {
+        webcam.canvas.remove();
+      }
+      cameraActive = false;
+      btn.textContent = '📷 Iniciar Cámara';
+      if (btnCapture) btnCapture.style.display = 'none';
+      document.getElementById('label-container').innerHTML = `
+        <div class="empty-state">
+          <span style="font-size: 48px;">📷</span>
+          <p style="color: #999;">Esperando análisis</p>
+          <p style="font-size: 12px; color: #bbb;">Sube una imagen para comenzar</p>
+        </div>
+      `;
+    }
+  }
+
+  // Capturar imagen desde la cámara en vivo sin detenerla
+  function capturarDesdeCamera() {
+    console.log('Captura iniciada. webcam:', webcam, 'canvas:', webcam ? webcam.canvas : 'N/A');
+    
+    if (!webcam) {
+      alert('❌ La cámara no está inicializada. Presiona "Iniciar Cámara" primero.');
+      return;
+    }
+    
+    if (!webcam.canvas) {
+      alert('❌ El canvas de la cámara no está disponible. Intenta de nuevo.');
+      return;
+    }
+    
+    try {
+      // Pequeño delay para asegurar que el frame sea válido
+      setTimeout(() => {
+        try {
+          // Crear canvas con la imagen actual de la cámara
+          const canvas = document.createElement('canvas');
+          canvas.width = webcam.canvas.width;
+          canvas.height = webcam.canvas.height;
+          
+          if (canvas.width === 0 || canvas.height === 0) {
+            alert('❌ La cámara aún no está lista. Espera un momento e intenta de nuevo.');
+            return;
+          }
+          
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(webcam.canvas, 0, 0);
+          
+          // Convertir a imagen para preview
+          const imageData = canvas.toDataURL('image/jpeg');
+          const previewDiv = document.getElementById('preview-upload');
+          if (previewDiv) {
+            previewDiv.innerHTML = `<img src="${imageData}" style="max-width: 100%; border-radius: 8px; margin-top: 10px;">`;
+          }
+          
+          // Mostrar estado
+          const labelContainer = document.getElementById('label-container');
+          if (labelContainer) {
+            labelContainer.innerHTML = '<p style="text-align: center; color: #666;">🔄 Analizando captura...</p>';
+          }
+          
+          // Ejecutar predicción
+          if (modelReady && model) {
+            predict(canvas).then(() => {
+              // Después de la predicción, mostrar botón para guardar
+              if (labelContainer) {
+                const saveBtn = labelContainer.querySelector('[onclick="abrirModalGuardado()"]');
+                if (!saveBtn) {
+                  setTimeout(() => {
+                    const currentHTML = labelContainer.innerHTML;
+                    if (!currentHTML.includes('Guardar Detección')) {
+                      labelContainer.innerHTML += `<button onclick="abrirModalGuardado()" style="width: 100%; margin-top: 12px; padding: 12px; background: #43a047; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 14px; transition: background 0.3s;"> 💾 Guardar Detección en Mis Cultivos </button>`;
+                    }
+                  }, 100);
+                }
+              }
+            }).catch(err => {
+              console.error('Error en predicción:', err);
+              if (labelContainer) {
+                labelContainer.innerHTML = '<p style="text-align: center; color: #d32f2f;">❌ Error al analizar la imagen</p>';
+              }
+            });
+          } else {
+            alert('⚠️ El modelo aún no está listo. Recarga la página.');
+          }
+        } catch (error) {
+          console.error('Error interno en captura:', error);
+          alert('❌ Error: ' + error.message);
+        }
+      }, 200);
+      
+    } catch (error) {
+      console.error('Error al capturar:', error);
+      alert('❌ Error al capturar imagen: ' + error.message);
+    }
+  }
+
+  // Manejar selección de cultivo
+  const cultivoSelector = document.getElementById('cultivo-selector');
+  const cultivoDescription = document.getElementById('cultivo-description');
+
+  const cultivosInfo = {
+    'papa-tulcan': {
+      nombre: 'Papa - Tulcán',
+      ubicacion: 'El Carmelo',
+      area: '2.5 ha',
+      plantado: '14/1/2024'
+    },
+    'papa-huaca': {
+      nombre: 'Papa - Huaca',
+      ubicacion: 'La Paz',
+      area: '1.8 ha',
+      plantado: '25/1/2024'
+    },
+    'papa-sangabriel': {
+      nombre: 'Papa - San Gabriel',
+      ubicacion: 'Centro',
+      area: '2.0 ha',
+      plantado: '20/1/2024'
+    }
+  };
+
+  function actualizarDescripcionCultivo() {
+    const cultivoId = cultivoSelector.value;
+    const cultivo = cultivosInfo[cultivoId];
+    
+    if (cultivo) {
+      cultivoDescription.innerHTML = `
+        <p style="margin: 6px 0; font-size: 11px;">
+          <strong>📍 ${cultivo.ubicacion}</strong><br>
+          <strong>📏 Área:</strong> ${cultivo.area}<br>
+          <strong>🌱 Plantado:</strong> ${cultivo.plantado}
+        </p>
+      `;
+    }
+  }
+
+  if (cultivoSelector) {
+    cultivoSelector.addEventListener('change', actualizarDescripcionCultivo);
+    
+    // Cargar cultivo desde URL si existe
+    const params = new URLSearchParams(window.location.search);
+    const cultivoParam = params.get('cultivo');
+    if (cultivoParam && cultivoParam in cultivosInfo) {
+      cultivoSelector.value = cultivoParam;
+      actualizarDescripcionCultivo();
+    } else {
+      actualizarDescripcionCultivo();
+    }
+  }
+
+  // Funciones para el modal de guardado
+  function abrirModalGuardado() {
+    const modal = document.getElementById('modal-guardar');
+    const cultivoSelector = document.getElementById('cultivo-selector');
+    const cultivosInfo = {
+      'papa-tulcan': 'Papa - Tulcán',
+      'papa-huaca': 'Papa - Huaca',
+      'papa-sangabriel': 'Papa - San Gabriel'
+    };
+
+    if (!cultivoSelector.value) {
+      alert('⚠️ Por favor selecciona un cultivo antes de guardar');
+      return;
+    }
+
+    if (!window.currentPrediction) {
+      alert('❌ No hay detección para guardar');
+      return;
+    }
+
+    // Llenar el modal con los datos
+    document.getElementById('modal-cultivo').value = cultivosInfo[cultivoSelector.value] || '';
+    document.getElementById('modal-plaga').value = window.currentPrediction.className;
+    
+    // Establecer fecha y hora actual como predeterminado
+    const ahora = new Date();
+    const fecha = ahora.toISOString().split('T')[0];
+    const hora = ahora.toTimeString().slice(0, 5);
+    document.getElementById('modal-fecha').value = fecha;
+    document.getElementById('modal-hora').value = hora;
+    
+    // Limpiar campos de texto
+    document.getElementById('modal-ubicacion').value = '';
+    document.getElementById('modal-observaciones').value = '';
+
+    // Mostrar modal
+    modal.style.display = 'block';
+  }
+
+  function cerrarModal() {
+    document.getElementById('modal-guardar').style.display = 'none';
+  }
+
+  function guardarDeteccionConDetalles() {
+    const cultivoSelector = document.getElementById('cultivo-selector');
+    const ubicacion = document.getElementById('modal-ubicacion').value.trim();
+    const observaciones = document.getElementById('modal-observaciones').value.trim();
+    const fecha = document.getElementById('modal-fecha').value;
+    const hora = document.getElementById('modal-hora').value;
+
+    // Validar campos requeridos
+    if (!ubicacion) {
+      alert('⚠️ Por favor ingresa la ubicación específica del problema');
+      return;
+    }
+
+    if (!fecha || !hora) {
+      alert('⚠️ Por favor ingresa la fecha y hora de la inspección');
+      return;
+    }
+
+    const cultivoId = cultivoSelector.value;
+    const datos = {
+      ...window.currentPrediction,
+      clase: window.currentPrediction.className,
+      ubicacion: ubicacion,
+      observaciones: observaciones,
+      fecha: fecha,
+      hora: hora,
+      timestamp: new Date(`${fecha}T${hora}`).toISOString()
+    };
+
+    try {
+      const key = `detecciones_${cultivoId}`;
+      let detecciones = [];
+      
+      const stored = localStorage.getItem(key);
+      if (stored) {
+        try {
+          detecciones = JSON.parse(stored);
+        } catch (e) {
+          detecciones = [];
+        }
+      }
+      
+      // Agregar la nueva detección
+      detecciones.push(datos);
+      
+      // Guardar las últimas 20 detecciones
+      if (detecciones.length > 20) {
+        detecciones = detecciones.slice(-20);
+      }
+      
+      localStorage.setItem(key, JSON.stringify(detecciones));
+      
+      // Cerrar modal
+      cerrarModal();
+      
+      // Mostrar mensaje de éxito
+      const msg = document.createElement('div');
+      msg.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #43a047; color: white; padding: 12px 20px; border-radius: 6px; z-index: 9999; font-weight: 600; animation: slideIn 0.3s ease-out;';
+      msg.innerHTML = '✅ Detección guardada correctamente';
+      document.body.appendChild(msg);
+      
+      setTimeout(() => {
+        msg.remove();
+      }, 3000);
+      
+      console.log(`✅ Detección guardada para ${cultivoId}`);
+    } catch (e) {
+      console.error('Error al guardar', e);
+      alert('❌ Error al guardar: ' + e.message);
+    }
+  }
+
+  // Cerrar modal al hacer click fuera
+  window.addEventListener('click', (e) => {
+    const modal = document.getElementById('modal-guardar');
+    if (e.target === modal) {
+      cerrarModal();
+    }
+  });
+</script>
+
+</body>
+</html>
